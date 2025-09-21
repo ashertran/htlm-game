@@ -2,43 +2,61 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Trò chơi di chuyển đến kho báu</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+    body { font-family: Arial, sans-serif; text-align: center; margin: 12px; }
+    #topbar { margin-bottom: 8px; }
     #container { display: inline-block; position: relative; }
-    #grid { display: grid; grid-template-columns: repeat(5, 80px); grid-template-rows: repeat(5, 80px); margin: 20px auto; width: 400px; height: 400px; }
-    .cell { border: 2px solid #d0d0d0; display: flex; align-items: center; justify-content: center; font-size: 22px; background: linear-gradient(180deg,#fff,#f7f7ff); }
+
+    /* Lưới 5x5 */
+    #grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); width: 420px; height: 420px; border-radius: 8px; overflow: hidden; }
+    .cell { border: 2px solid #d0d0d0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: linear-gradient(180deg,#fff,#f7f7ff); }
     .cell[data-hint] { background: #fff8e1; }
 
-    #player { width: 64px; height: 64px; background: lightblue; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; position: absolute; transition: left 0.2s, top 0.2s; pointer-events: none; }
+    /* Nhân vật (absolute bên trong container) */
+    #player { width: 72px; height: 72px; background: #b3e5fc; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 36px; position: absolute; transition: left 0.18s, top 0.18s; pointer-events: none; box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
 
-    #controls { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 12px; }
-    .btn { width: 60px; height: 60px; border-radius: 8px; border: none; font-size: 28px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    /* Controls */
+    #controls { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .btn { width: 60px; height: 60px; border-radius: 10px; border: none; font-size: 26px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
     .btn:active { transform: translateY(2px); }
-
-    #dpad { display: grid; grid-template-columns: repeat(3, 70px); gap: 6px; }
-    .spacer { visibility: hidden; }
-
-    #message { margin-top: 12px; font-size: 20px; font-weight: bold; }
-    #score { margin-top: 6px; font-size: 16px; }
-
-    /* Friendly colors for lớp 1 */
     .btn-arrow { background: #ffe082; }
     .btn-reset { background: #90caf9; }
 
+    #dpad { display: grid; grid-template-columns: repeat(3, 70px); gap: 8px; }
+    .spacer { visibility: hidden; }
+
+    #message { margin-top: 8px; font-size: 18px; font-weight: 600; }
+    #score { margin-top: 4px; font-size: 16px; }
+
+    /* Hộp luật chơi cố định */
+    #rules { text-align: left; display: inline-block; width: 420px; margin-bottom: 10px; background: #fff8e1; padding: 10px; border-radius: 8px; font-size: 16px; }
+
     @media (max-width: 480px) {
-      #grid { width: 320px; height: 320px; grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(5, 64px); }
-      .btn { width: 52px; height: 52px; }
+      #grid { width: 320px; height: 320px; }
+      #player { width: 56px; height: 56px; font-size: 26px; }
+      .btn { width: 48px; height: 48px; }
+      #rules { width: 320px; }
     }
   </style>
 </head>
 <body>
-  <h1>🚁 Trò chơi di chuyển đến kho báu</h1>
-  <p>Hướng dẫn: Nhấn mũi tên bên dưới hoặc phím <strong>← ↑ ↓ →</strong> để di chuyển nhân vật đến kho báu <strong>⭐</strong>. Hoặc chạm vào ô muốn đi.</p>
+  <div id="topbar">
+    <h1>🚁 Trò chơi di chuyển đến kho báu</h1>
+    <div id="rules">
+      <strong>📜 Luật chơi (rất dễ):</strong>
+      <ol>
+        <li>Nhấn nút mũi tên (hoặc phím ← ↑ ↓ →) để di chuyển nhân vật.</li>
+        <li>Tìm ngôi sao <strong>⭐</strong> để lấy kho báu — mỗi lần tìm được sẽ +1 điểm.</li>
+        <li>Ngôi sao sẽ nhảy sang ô khác sau khi bạn đến nơi. Cố gắng tìm thật nhiều nhé!</li>
+      </ol>
+    </div>
+  </div>
 
   <div id="container">
-    <div id="grid"></div>
-    <div id="player">🚁</div>
+    <div id="grid" aria-hidden="false"></div>
+    <div id="player" aria-hidden="true">🚁</div>
   </div>
 
   <div id="controls">
@@ -55,54 +73,63 @@
       <button class="btn btn-arrow" id="down">↓</button>
       <div class="spacer"></div>
     </div>
+    <div>
+      <button class="btn btn-reset" id="reset">Bắt đầu lại</button>
+    </div>
   </div>
 
-  <div style="margin-top:10px">
-    <button class="btn btn-reset" id="reset">Bắt đầu</button>
-  </div>
-
-  <div id="message"></div>
+  <div id="message">Bấm nút hoặc chạm ô để di chuyển.</div>
   <div id="score">Kho báu đã tìm: 0</div>
 
   <script>
+  // Đóng gói toàn bộ logic sau khi DOM load để tránh lỗi khi deploy (Github Pages đôi khi load khác)
+  document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('grid');
     const player = document.getElementById('player');
     const message = document.getElementById('message');
     const scoreEl = document.getElementById('score');
     const size = 5; // 5x5
 
-    // Tạo các ô và đánh nhãn ban đầu
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.dataset.x = col;
-        cell.dataset.y = row;
-        cell.innerHTML = `<div style="font-size:14px;color:#666">R${row+1} C${col+1}</div>`;
-        cell.addEventListener('click', () => moveTo(col, row));
-        grid.appendChild(cell);
+    // Tạo ô grid rõ ràng và lưu tham chiếu
+    const cells = [];
+    function buildGrid() {
+      grid.innerHTML = '';
+      for (let row = 0; row < size; row++) {
+        for (let col = 0; col < size; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.x = col;
+          cell.dataset.y = row;
+          cell.dataset.index = row * size + col;
+          const label = document.createElement('div');
+          label.style.fontSize = '14px';
+          label.style.color = '#444';
+          label.textContent = `R${row+1} C${col+1}`;
+          label.dataset.label = label.textContent;
+          cell.appendChild(label);
+
+          cell.addEventListener('click', () => moveTo(col, row));
+          grid.appendChild(cell);
+          cells.push(cell);
+        }
       }
     }
 
-    // Player ban đầu (0,0)
+    // Trạng thái game
     let playerPos = { x: 0, y: 0 };
     let treasure = null;
     let score = 0;
 
     function placeInitialLabels() {
-      const cells = grid.querySelectorAll('.cell');
       cells.forEach((cell, i) => {
-        const r = Math.floor(i / size) + 1;
-        const c = i % size + 1;
         const d = cell.querySelector('div');
-        if (d) d.textContent = `R${r} C${c}`;
+        if (d) d.textContent = d.dataset.label || d.textContent;
         delete cell.dataset.hint;
       });
     }
 
     function pickTreasure() {
-      const cells = grid.querySelectorAll('.cell');
-      // xóa nếu có ô treasure cũ
+      // xóa treasure cũ
       cells.forEach(cell => { if (cell.dataset.hint === 'treasure') { const d = cell.querySelector('div'); if (d) d.textContent = d.dataset.label || d.textContent; delete cell.dataset.hint; } });
 
       let tx, ty, idx;
@@ -110,7 +137,7 @@
         tx = Math.floor(Math.random() * size);
         ty = Math.floor(Math.random() * size);
         idx = ty * size + tx;
-      } while (tx === playerPos.x && ty === playerPos.y); // tránh trùng với vị trí player
+      } while (tx === playerPos.x && ty === playerPos.y);
 
       const target = cells[idx];
       if (target) {
@@ -126,7 +153,10 @@
     }
 
     function updatePlayer() {
-      const sizePx = grid.clientWidth / size;
+      // Tính lại kích thước ô mỗi lần (tránh lỗi width=0 khi chưa render trên Github Pages)
+      const rect = grid.getBoundingClientRect();
+      const sizePx = rect.width / size;
+      // di chuyển player relative đến container (player là con của container)
       player.style.left = playerPos.x * sizePx + 'px';
       player.style.top = playerPos.y * sizePx + 'px';
 
@@ -134,7 +164,7 @@
         score++;
         updateScore();
         message.textContent = '🎉 Bạn đã tìm thấy kho báu! Kho báu sẽ di chuyển chỗ khác...';
-        // Đợi 700ms rồi sinh kho báu mới (không reset vị trí player)
+        // delay rồi sinh treasure mới
         setTimeout(() => {
           placeInitialLabels();
           treasure = pickTreasure();
@@ -147,8 +177,10 @@
     }
 
     function step(dx, dy) {
-      if (playerPos.x + dx >= 0 && playerPos.x + dx < size) playerPos.x += dx;
-      if (playerPos.y + dy >= 0 && playerPos.y + dy < size) playerPos.y += dy;
+      const nx = playerPos.x + dx;
+      const ny = playerPos.y + dy;
+      if (nx >= 0 && nx < size) playerPos.x = nx;
+      if (ny >= 0 && ny < size) playerPos.y = ny;
       updatePlayer();
     }
 
@@ -165,14 +197,12 @@
       }
     }
 
-    // Nút on-screen
+    // Buttons
     document.getElementById('up').addEventListener('click', () => step(0, -1));
     document.getElementById('down').addEventListener('click', () => step(0, 1));
     document.getElementById('left').addEventListener('click', () => step(-1, 0));
     document.getElementById('right').addEventListener('click', () => step(1, 0));
-
     document.getElementById('reset').addEventListener('click', () => {
-      // Reset: vị trí player về (0,0), đặt lại nhãn ban đầu và reset điểm
       playerPos = { x: 0, y: 0 };
       score = 0;
       updateScore();
@@ -182,6 +212,7 @@
       message.textContent = 'Bắt đầu lại! Dùng mũi tên hoặc chạm ô để di chuyển.';
     });
 
+    // Keyboard
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') step(0, -1);
       if (e.key === 'ArrowDown') step(0, 1);
@@ -189,14 +220,16 @@
       if (e.key === 'ArrowRight') step(1, 0);
     });
 
-    // Khởi tạo trò chơi
+    // Build + start
+    buildGrid();
     placeInitialLabels();
     treasure = pickTreasure();
     updateScore();
     updatePlayer();
 
-    // Khi thay đổi kích thước cửa sổ => cập nhật vị trí player cho đúng
+    // Resize listener to keep player positioned correctly
     window.addEventListener('resize', () => updatePlayer());
+  });
   </script>
 </body>
 </html>
